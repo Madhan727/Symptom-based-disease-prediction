@@ -43,15 +43,18 @@ class Symptom(db.Model):
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# Load ML Model Assets
+# Load ML Model Assets (trained on real Disease & Symptoms dataset)
 try:
-    model = joblib.load('model.pkl')
-    le = joblib.load('label_encoder.pkl')
-    SYMPTOMS_LIST = joblib.load('symptoms_list.pkl')
-except:
+    model          = joblib.load('model.pkl')           # RandomForestClassifier
+    le             = joblib.load('label_encoder.pkl')   # Disease LabelEncoder
+    SYMPTOMS_LIST  = joblib.load('symptoms_list.pkl')   # All 377 model feature cols
+    UI_SYMPTOMS    = joblib.load('ui_symptoms.pkl')     # Top 50 for dashboard dropdown
+except FileNotFoundError:
     model = None
     le = None
     SYMPTOMS_LIST = []
+    UI_SYMPTOMS   = []
+    print('[WARNING] model artifacts not found — run: python train_model.py')
 
 # Temporal Analysis Helper
 def analyze_temporal_patterns(user_id):
@@ -145,7 +148,9 @@ def logout():
 @login_required
 def dashboard():
     symptoms = Symptom.query.filter_by(user_id=current_user.id).order_by(Symptom.date_occurrence.desc()).all()
-    return render_template('dashboard.html', symptoms=symptoms, symptoms_list=SYMPTOMS_LIST)
+    # Use the UI-friendly top-50 list for the dropdown; fall back to full list
+    dropdown_symptoms = UI_SYMPTOMS if UI_SYMPTOMS else SYMPTOMS_LIST
+    return render_template('dashboard.html', symptoms=symptoms, symptoms_list=dropdown_symptoms)
 
 @app.route('/add_symptom', methods=['POST'])
 @login_required
@@ -177,68 +182,88 @@ def add_symptom():
 @app.route('/analyze')
 @login_required
 def analyze():
+    if model is None:
+        flash('Prediction model not loaded. Run: python train_model.py', 'danger')
+        return redirect(url_for('dashboard'))
+
     analysis = analyze_temporal_patterns(current_user.id)
     if not analysis:
-        flash('Add symptoms first')
+        flash('Please add at least one Active symptom before running analysis.', 'warning')
         return redirect(url_for('dashboard'))
-    
-    # Prepare features for ML Model
-    recent_symptoms = Symptom.query.filter_by(user_id=current_user.id, status='Active').all()
-    symptom_flags = {s: 0 for s in SYMPTOMS_LIST}
-    for s in recent_symptoms:
-        if s.name.lower() in symptom_flags:
-            symptom_flags[s.name.lower()] = 1
-            
-    features = {
-        'age': current_user.age,
-        'smoking': 1 if current_user.smoking else 0,
-        'diabetes': 1 if current_user.diabetes else 0,
-        'bp': 1 if current_user.bp else 0,
-        'avg_severity': analysis['max_severity'],
-        'avg_duration': analysis['total_duration'],
-        'recurrence_count': sum(analysis['symptom_counts'].values()) - len(analysis['symptom_counts']),
-    }
-    features.update(symptom_flags)
-    
-    # Prediction
-    df_features = pd.DataFrame([features])
-    # Ensure correct column order
-    expected_cols = ['age', 'smoking', 'diabetes', 'bp', 'avg_severity', 'avg_duration', 'recurrence_count'] + SYMPTOMS_LIST
-    df_features = df_features[expected_cols]
-    
+
+    # ── Build feature vector matching the real dataset's 377 symptom columns ──
+    # Start with all zeros (one per model feature column)
+    symptom_flags = {col: 0 for col in SYMPTOMS_LIST}
+
+    # Map user's logged symptoms to the exact column names used during training
+    # Column names in the real dataset use underscores and lowercase
+    active_symptoms = Symptom.query.filter_by(user_id=current_user.id, status='Active').all()
+    for s in active_symptoms:
+        # Normalise the entered name to match dataset column naming
+        col_name = (s.name.strip().lower()
+                    .replace(' ', '_')
+                    .replace('-', '_'))
+        if col_name in symptom_flags:
+            symptom_flags[col_name] = 1
+
+    # Build DataFrame in the exact column order the model was trained on
+    df_features = pd.DataFrame([symptom_flags])[SYMPTOMS_LIST]
+
+    # ── Prediction ────────────────────────────────────────────────────────────
     probs = model.predict_proba(df_features)[0]
     top_indices = np.argsort(probs)[-3:][::-1]
     predictions = []
     for idx in top_indices:
+        disease_name = le.inverse_transform([idx])[0]
         predictions.append({
-            'disease': le.inverse_transform([idx])[0],
-            'probability': round(probs[idx] * 100, 2)
+            'disease': disease_name.title(),
+            'probability': round(float(probs[idx]) * 100, 2)
         })
-        
-    # Risk Score Calculation (clamped to 100 for SVG gauge)
-    risk_score = min(100, (analysis['max_severity'] * 5) + (analysis['total_duration'] * 2) + (current_user.smoking * 10))
-    risk_level = "Low"
+
+    # ── Risk Score (clamped 0–100 for SVG gauge) ──────────────────────────────
+    smoking_factor = 10 if current_user.smoking else 0
+    risk_score = min(100,
+                     (analysis['max_severity'] * 5) +
+                     (analysis['total_duration'] * 2) +
+                     smoking_factor)
     if risk_score > 60:
         risk_level = "High"
     elif risk_score > 30:
         risk_level = "Moderate"
-        
-    # Specialist Recommendation
-    specialist = "General Physician"
-    top_disease = predictions[0]['disease'] if predictions else ''
-    if top_disease in ['COVID-19', 'Pneumonia', 'Bronchitis', 'Asthma Flare-up']:
-        specialist = "Pulmonologist"
-    elif top_disease == 'Migraine':
-        specialist = "Neurologist"
-    elif top_disease == 'Dengue':
-        specialist = "Infectious Disease Specialist"
-    elif top_disease == 'Gastroenteritis':
-        specialist = "Gastroenterologist"
-        
-    return render_template('result.html', 
-                           analysis=analysis, 
-                           predictions=predictions, 
-                           risk_level=risk_level, 
+    else:
+        risk_level = "Low"
+
+    # ── Specialist Recommendation ─────────────────────────────────────────────
+    top_disease = predictions[0]['disease'].lower() if predictions else ''
+    specialist_map = {
+        'covid': 'Pulmonologist / Infectious Disease Specialist',
+        'pneumonia': 'Pulmonologist',
+        'bronchitis': 'Pulmonologist',
+        'asthma': 'Pulmonologist',
+        'migraine': 'Neurologist',
+        'dengue': 'Infectious Disease Specialist',
+        'malaria': 'Infectious Disease Specialist',
+        'tuberculosis': 'Pulmonologist',
+        'typhoid': 'Infectious Disease Specialist',
+        'gastro': 'Gastroenterologist',
+        'diabetes': 'Endocrinologist',
+        'hypertension': 'Cardiologist',
+        'heart': 'Cardiologist',
+        'skin': 'Dermatologist',
+        'allergy': 'Allergist / Immunologist',
+        'anxiety': 'Psychiatrist',
+        'depression': 'Psychiatrist',
+    }
+    specialist = 'General Physician'
+    for keyword, spec in specialist_map.items():
+        if keyword in top_disease:
+            specialist = spec
+            break
+
+    return render_template('result.html',
+                           analysis=analysis,
+                           predictions=predictions,
+                           risk_level=risk_level,
                            risk_score=risk_score,
                            specialist=specialist)
 

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
+
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
         <div class="container">
@@ -21,19 +23,21 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     {% if current_user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link btn btn-outline-danger btn-sm ms-lg-3 px-4" href="{{ url_for('logout') }}">Logout</a>
-                        </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-outline-danger btn-sm ms-lg-3 px-4"
+                            href="{{ url_for('logout') }}">Logout</a>
+                    </li>
                     {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('login') }}">Login</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link btn btn-primary btn-sm text-white ms-lg-3 px-4" href="{{ url_for('register') }}">Register</a>
-                        </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-primary btn-sm text-white ms-lg-3 px-4"
+                            href="{{ url_for('register') }}">Register</a>
+                    </li>
                     {% endif %}
                 </ul>
             </div>
@@ -42,22 +46,33 @@
 
     <div class="container py-4">
         {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-warning alert-dismissible fade show rounded-pill" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-warning alert-dismissible fade show rounded-pill" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
         {% endwith %}
 
         {% block content %}{% endblock %}
     </div>
 
     <footer class="bg-white py-4 mt-5 border-top">
-        <div class="container text-center text-muted">
-            <p>&copy; 2026 HealthSense AI. Built for Professional Health Risk Assessment.</p>
+        <div class="container">
+            <div class="row align-items-center gy-2">
+                <div class="col-md-6 text-center text-md-start text-muted small">
+                    &copy; 2026 HealthSense AI &mdash; Preliminary Health Risk Assessment Tool
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <span class="badge bg-danger rounded-pill px-3 py-2 small">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        NOT a medical diagnosis &mdash; Emergency: <strong>112</strong> &bull; Ambulance:
+                        <strong>108</strong>
+                    </span>
+                </div>
+            </div>
         </div>
     </footer>
 
@@ -65,4 +80,5 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
+
 </html>
