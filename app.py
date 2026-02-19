@@ -238,6 +238,16 @@ def analyze():
                            risk_score=risk_score,
                            specialist=specialist)
 
+@app.route('/delete_symptom/<int:symptom_id>', methods=['POST'])
+@login_required
+def delete_symptom(symptom_id):
+    symptom = Symptom.query.get(symptom_id)
+    if symptom and symptom.user_id == current_user.id:
+        db.session.delete(symptom)
+        db.session.commit()
+        flash('Symptom deleted successfully')
+    return redirect(url_for('dashboard'))
+
 @app.route('/api/severity_history')
 @login_required
 def severity_history():
