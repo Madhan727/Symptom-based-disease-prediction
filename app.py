@@ -144,7 +144,7 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    symptoms = Symptom.query.filter_by(user_id=current_user.id, status='Active').order_by(Symptom.date_occurrence.desc()).all()
+    symptoms = Symptom.query.filter_by(user_id=current_user.id).order_by(Symptom.date_occurrence.desc()).all()
     return render_template('dashboard.html', symptoms=symptoms, symptoms_list=SYMPTOMS_LIST)
 
 @app.route('/add_symptom', methods=['POST'])
@@ -159,11 +159,6 @@ def add_symptom():
     severity = request.form.get('severity')
     status = request.form.get('status')
     
-    # Don't save resolved symptoms - auto discard
-    if status == 'Resolved':
-        flash('Note: Resolved symptoms are not saved for analysis. Only active symptoms are tracked.', 'info')
-        return redirect(url_for('dashboard'))
-    
     new_symptom = Symptom(
         user_id = current_user.id,
         name = name,
@@ -173,7 +168,10 @@ def add_symptom():
     )
     db.session.add(new_symptom)
     db.session.commit()
-    flash('Symptom added successfully')
+    if status == 'Resolved':
+        flash('Resolved symptom saved. You can delete it from Logged History.', 'info')
+    else:
+        flash('Active symptom added successfully')
     return redirect(url_for('dashboard'))
 
 @app.route('/analyze')
@@ -243,6 +241,16 @@ def analyze():
                            risk_level=risk_level, 
                            risk_score=risk_score,
                            specialist=specialist)
+
+@app.route('/delete_symptom/<int:symptom_id>', methods=['POST'])
+@login_required
+def delete_symptom(symptom_id):
+    symptom = Symptom.query.get(symptom_id)
+    if symptom and symptom.user_id == current_user.id:
+        db.session.delete(symptom)
+        db.session.commit()
+        flash('Symptom deleted successfully')
+    return redirect(url_for('dashboard'))
 
 @app.route('/api/severity_history')
 @login_required
