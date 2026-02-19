@@ -1,0 +1,118 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm mb-4 rounded-4">
+            <div class="card-body p-4">
+                <h4 class="fw-bold mb-4">Add Symptom</h4>
+                <form action="{{ url_for('add_symptom') }}" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Symptom Name</label>
+                        <select name="symptom_name" id="symptom_select" class="form-select rounded-3 p-2"
+                            onchange="toggleCustomSymptom()">
+                            {% for symptom in symptoms_list %}
+                            <option value="{{ symptom }}">{{ symptom | capitalize }}</option>
+                            {% endfor %}
+                            <option value="custom">Other (Custom)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3 d-none" id="custom_symptom_div">
+                        <label class="form-label text-muted">Enter Symptom</label>
+                        <input type="text" name="custom_symptom" class="form-control rounded-3"
+                            placeholder="e.g. Diarrhea">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Duration (Days)</label>
+                        <input type="number" name="duration" class="form-control rounded-3" value="1" min="1">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Severity (1-10)</label>
+                        <input type="range" name="severity" class="form-range" min="1" max="10" value="5">
+                        <div class="d-flex justify-content-between small text-muted">
+                            <span>Mild</span><span>Moderate</span><span>Severe</span>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label text-muted">Status</label>
+                        <select name="status" class="form-select rounded-3">
+                            <option value="Active">Active</option>
+                            <option value="Resolved">Resolved</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 shadow-sm">Save
+                        Symptom</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm mb-4 rounded-4">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold m-0">Symptom Timeline</h4>
+                    <a href="{{ url_for('analyze') }}" class="btn btn-success rounded-pill px-4 shadow-sm">Run AI
+                        Analysis <i class="fas fa-play ms-1"></i></a>
+                </div>
+                <canvas id="severityChart" height="150"></canvas>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+                <h4 class="fw-bold mb-4">Logged History</h4>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="bg-light">
+                            <tr>
+                                <th>Symptom</th>
+                                <th>Severity</th>
+                                <th>Duration</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for s in symptoms %}
+                            <tr>
+                                <td class="fw-semibold">{{ s.name }}</td>
+                                <td>
+                                    <span
+                                        class="badge rounded-pill {% if s.severity > 7 %}bg-danger{% elif s.severity > 4 %}bg-warning text-dark{% else %}bg-info{% endif %} px-3">
+                                        {{ s.severity }}/10
+                                    </span>
+                                </td>
+                                <td>{{ s.duration }} days</td>
+                                <td>
+                                    <span
+                                        class="dot {% if s.status == 'Active' %}bg-primary{% else %}bg-secondary{% endif %}"></span>
+                                    {{ s.status }}
+                                </td>
+                                <td class="text-muted small">{{ s.date_occurrence.strftime('%b %d, %Y') }}</td>
+                            </tr>
+                            {% endfor %}
+                            {% if not symptoms %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">No symptoms logged yet.</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleCustomSymptom() {
+        const select = document.getElementById('symptom_select');
+        const customDiv = document.getElementById('custom_symptom_div');
+        if (select.value === 'custom') {
+            customDiv.classList.remove('d-none');
+        } else {
+            customDiv.classList.add('d-none');
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="row align-items-center min-vh-75">
+    <div class="col-lg-6">
+        <h1 class="display-4 fw-bold text-primary mb-4">Smart Temporal Symptom Analysis</h1>
+        <p class="lead text-muted mb-5">Identify health patterns and risks early with our AI-powered disease prediction
+            system. Track your symptoms over time for more accurate diagnosis.</p>
+        <div class="d-flex gap-3">
+            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg px-5 rounded-pill shadow">Get Started</a>
+            <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg px-5 rounded-pill">Login</a>
+        </div>
+    </div>
+    <div class="col-lg-6 mt-5 mt-lg-0">
+        <div class="hero-image-container p-4 glass-card">
+            <img src="https://img.freepik.com/free-vector/medical-technology-concept_23-2148405021.jpg"
+                class="img-fluid rounded-4 shadow-lg" alt="Medical Technology">
+        </div>
+    </div>
+</div>
+
+<section class="mt-5 py-5">
+    <div class="row g-4 text-center">
+        <div class="col-md-4">
+            <div class="p-4 bg-white rounded-4 shadow-sm h-100">
+                <i class="fas fa-clock fa-3x text-info mb-3"></i>
+                <h3>Temporal Tracking</h3>
+                <p>Analyzes symptom duration and recurrence to detect chronic risks.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-4 bg-white rounded-4 shadow-sm h-100">
+                <i class="fas fa-brain fa-3x text-primary mb-3"></i>
+                <h3>AI Prediction</h3>
+                <p>Advanced Random Forest model trained on thousands of medical scenarios.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-4 bg-white rounded-4 shadow-sm h-100">
+                <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
+                <h3>Risk Indicators</h3>
+                <p>Visual reports and color-coded risk levels for easy understanding.</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

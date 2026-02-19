@@ -1,0 +1,93 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="row g-4">
+    <!-- Summary Header -->
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4 bg-primary text-white p-4">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h2 class="fw-bold m-0">Analysis Results for {{ current_user.name }}</h2>
+                    <p class="mb-0 opacity-75">Based on {{ analysis.total_duration }} days of symptom history</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <span class="badge bg-white text-primary rounded-pill px-4 py-2 fs-6 shadow-sm">
+                        Pattern: {{ analysis.pattern }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Disease Predictions -->
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-body p-4">
+                <h4 class="fw-bold mb-4">Top Predicted Conditions</h4>
+                {% for p in predictions %}
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="fw-semibold">{{ p.disease }}</span>
+                        <span class="text-primary fw-bold">{{ p.probability }}%</span>
+                    </div>
+                    <div class="progress rounded-pill shadow-sm" style="height: 12px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated {% if p.probability > 70 %}bg-danger{% elif p.probability > 40 %}bg-warning{% else %}bg-info{% endif %}"
+                            role="progressbar" style="width: {{ p.probability }}%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4 bg-light">
+            <div class="card-body p-4 text-center">
+                <i class="fas fa-user-md fa-3x text-primary mb-3"></i>
+                <h4 class="fw-bold">Recommended Specialist</h4>
+                <p class="lead text-primary fw-bold">{{ specialist }}</p>
+                <div class="alert alert-info rounded-3 text-start small mt-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Medical Advice:</strong> Please schedule an appointment with a {{ specialist }} for a
+                    comprehensive evaluation. Bring your symptom timeline report from this application.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Risk Score -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 mb-4 text-center">
+            <div class="card-body p-4">
+                <h4 class="fw-bold mb-3">Health Risk Level</h4>
+                <div class="risk-meter mx-auto mb-3" style="width: 150px; height: 150px; position: relative;">
+                    <svg viewBox="0 0 36 36"
+                        class="circular-chart {% if risk_level == 'High' %}red{% elif risk_level == 'Moderate' %}orange{% else %}green{% endif %}">
+                        <path class="circle-bg"
+                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path class="circle" stroke-dasharray="{{ risk_score }}, 100"
+                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    </svg>
+                    <div class="risk-text">
+                        <span class="fs-2 fw-bold">{{ risk_score }}</span><br>
+                        <span class="small opacity-75">Score</span>
+                    </div>
+                </div>
+                <h5
+                    class="fw-bold {% if risk_level == 'High' %}text-danger{% elif risk_level == 'Moderate' %}text-warning text-dark{% else %}text-success{% endif %}">
+                    {{ risk_level }} Risk
+                </h5>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4 bg-soft-red text-danger p-4">
+            <h6 class="fw-bold">Disclaimer</h6>
+            <p class="small mb-0">This system provides preliminary health risk assessment only and is not a medical
+                diagnosis. If you are experiencing an emergency, dial emergency services immediately.</p>
+        </div>
+
+        <div class="mt-4">
+            <button onclick="window.print()" class="btn btn-outline-primary w-100 rounded-pill">
+                <i class="fas fa-print me-2"></i>Download Report
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}

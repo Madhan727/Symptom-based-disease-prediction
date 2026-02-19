@@ -1,0 +1,106 @@
+:root {
+    --primary-color: #0d6efd;
+    --soft-blue: #f0f7ff;
+    --soft-red: #fff5f5;
+    --medical-gray: #f8f9fa;
+}
+
+body {
+    font-family: 'Outfit', sans-serif;
+    background-color: #f4f7fa;
+    color: #333;
+}
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.rounded-4 { border-radius: 1rem !important; }
+
+.navbar {
+    border-bottom: 2px solid var(--soft-blue);
+}
+
+.btn-primary {
+    padding: 0.8rem 2rem;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(13, 110, 253, 0.2);
+}
+
+.dot {
+    height: 10px;
+    width: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+}
+
+/* Risk Meter Styling */
+.circular-chart {
+    display: block;
+    margin: 10px auto;
+    max-width: 100%;
+    max-height: 250px;
+}
+
+.circle-bg {
+    fill: none;
+    stroke: #eee;
+    stroke-width: 3.8;
+}
+
+.circle {
+    fill: none;
+    stroke-width: 2.8;
+    stroke-linecap: round;
+    animation: progress 1s ease-out forwards;
+}
+
+.green .circle { stroke: #28a745; }
+.orange .circle { stroke: #ffc107; }
+.red .circle { stroke: #dc3545; }
+
+.risk-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+@keyframes progress {
+    0% { stroke-dasharray: 0 100; }
+}
+
+.bg-soft-red {
+    background-color: var(--soft-red);
+}
+
+.table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}

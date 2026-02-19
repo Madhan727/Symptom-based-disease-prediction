@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="row g-0">
+                <div class="col-12 p-5">
+                    <h2 class="fw-bold text-primary mb-4 text-center">Join HealthSense AI</h2>
+                    <form action="{{ url_for('register') }}" method="POST">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small">Username</label>
+                                <input type="text" name="username" class="form-control rounded-3" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small">Password</label>
+                                <input type="password" name="password" class="form-control rounded-3" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label text-muted small">Full Name</label>
+                                <input type="text" name="name" class="form-control rounded-3" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small">Age</label>
+                                <input type="number" name="age" class="form-control rounded-3" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small">Gender</label>
+                                <select name="gender" class="form-select rounded-3">
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <p class="text-muted small mb-2">Lifestyle Factors</p>
+                                <div class="d-flex gap-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="smoking" id="smoking">
+                                        <label class="form-check-label" for="smoking">Smoking</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="diabetes" id="diabetes">
+                                        <label class="form-check-label" for="diabetes">Diabetes</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="bp" id="bp">
+                                        <label class="form-check-label" for="bp">High BP</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 mt-4 shadow">Create
+                            Account</button>
+                    </form>
+                    <p class="text-center mt-4 text-muted">Already have an account? <a href="{{ url_for('login') }}"
+                            class="text-primary text-decoration-none fw-bold">Login here</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
